@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Study Planner</title>
+  <meta name="description" content="Plan subjects, tasks and deadlines, and track your daily study progress.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235B8DEF'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script>
+    /* Apply the saved theme before the page paints to avoid a flash. */
+    try { if (JSON.parse(localStorage.getItem('studyPlanner.v1')).settings.theme === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+  </script>
+</head>
+<body>
+<noscript><p style="padding:24px">Student Study Planner needs JavaScript. Please enable it in your browser.</p></noscript>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand"><span class="brand-mark" data-icon="check" data-size="16"></span><span>Study Planner</span></div>
+    <nav class="nav">
+      <button class="nav-item" data-view="dashboard"><i data-icon="dashboard"></i><span>Dashboard</span></button>
+      <button class="nav-item" data-view="subjects"><i data-icon="book"></i><span>My Subjects</span></button>
+      <button class="nav-item" data-view="tasks"><i data-icon="tasks"></i><span>All Tasks</span><span class="nav-badge" id="nav-pending" hidden></span></button>
+      <button class="nav-item" data-view="planner"><i data-icon="clock"></i><span>Daily Planner</span></button>
+      <button class="nav-item" data-view="calendar"><i data-icon="calendar"></i><span>Calendar</span></button>
+      <button class="nav-item" data-view="progress"><i data-icon="chart"></i><span>Progress</span></button>
+      <button class="nav-item" data-view="settings"><i data-icon="settings"></i><span>Settings</span></button>
+    </nav>
+    <button class="nav-item theme-toggle" data-action="toggle-theme" id="theme-toggle"></button>
+  </aside>
+  <div class="scrim" data-action="close-sidebar"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" data-action="open-sidebar" aria-label="Open menu"><i data-icon="menu"></i></button>
+      <h1 id="page-title">Dashboard</h1>
+      <button class="btn primary" data-action="add-task"><i data-icon="plus" data-size="16"></i><span>Quick add task</span></button>
+    </header>
+
+    <!-- Dashboard -->
+    <section class="view" id="view-dashboard" hidden>
+      <div class="welcome">
+        <h2 id="dash-welcome">Welcome</h2>
+        <p id="dash-date" class="muted"></p>
+      </div>
+      <div class="stats" id="dash-stats"></div>
+      <div class="grid-2">
+        <div class="card" id="dash-today"></div>
+        <div class="card"><div class="card-head"><h3>Upcoming deadlines</h3><button class="link" data-action="goto" data-view="tasks">View all</button></div><div id="dash-upcoming"></div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-head"><h3>Recent tasks</h3></div><div id="dash-recent"></div></div>
+        <div class="card"><div class="card-head"><h3>Subject overview</h3><button class="link" data-action="goto" data-view="subjects">Manage</button></div><div id="dash-subjects"></div></div>
+      </div>
+    </section>
+
+    <!-- Subjects -->
+    <section class="view" id="view-subjects" hidden>
+      <div class="section-head">
+        <p class="muted">Organise your courses. Every task belongs to one subject.</p>
+        <button class="btn primary" data-action="add-subject"><i data-icon="plus" data-size="16"></i><span>Add subject</span></button>
+      </div>
+      <div class="subject-grid" id="subject-grid"></div>
+    </section>
+
+    <!-- Tasks -->
+    <section class="view" id="view-tasks" hidden>
+      <div class="card filters">
+        <label class="field grow"><span>Search by title</span><input type="search" id="filter-search" placeholder="Search tasks" autocomplete="off"></label>
+        <label class="field"><span>Subject</span><select id="filter-subject"></select></label>
+        <label class="field"><span>Priority</span>
+          <select id="filter-priority"><option value="all">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select></label>
+        <label class="field"><span>Status</span>
+          <select id="filter-status"><option value="all">All statuses</option><option>Pending</option><option>Completed</option><option>Overdue</option></select></label>
+        <label class="field"><span>Sort by</span>
+          <select id="filter-sort"><option value="dueAsc">Deadline, earliest first</option><option value="dueDesc">Deadline, latest first</option><option value="priority">Priority</option><option value="newest">Recently added</option></select></label>
+        <button class="btn ghost" id="filter-reset" type="button">Reset</button>
+      </div>
+      <p class="muted result-count" id="task-count" aria-live="polite"></p>
+      <ul class="tasks" id="task-list"></ul>
+    </section>
+
+    <!-- Daily planner -->
+    <section class="view" id="view-planner" hidden>
+      <div id="planner-summary"></div>
+      <div id="planner-overdue"></div>
+      <div id="planner-pending"></div>
+      <div id="planner-done"></div>
+    </section>
+
+    <!-- Calendar -->
+    <section class="view" id="view-calendar" hidden>
+      <div class="card">
+        <div class="cal-head">
+          <h3 id="cal-title"></h3>
+          <div class="cal-nav">
+            <button class="icon-btn" data-action="cal-prev" aria-label="Previous month"><i data-icon="chevL"></i></button>
+            <button class="btn ghost" data-action="cal-today">Today</button>
+            <button class="icon-btn" data-action="cal-next" aria-label="Next month"><i data-icon="chevR"></i></button>
+          </div>
+        </div>
+        <div class="cal-grid cal-weekdays" id="cal-weekdays"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="legend">
+          <span><i class="dot pri-high"></i>High</span><span><i class="dot pri-medium"></i>Medium</span><span><i class="dot pri-low"></i>Low</span>
+          <span><i class="dot done"></i>Completed</span><span><i class="sq overdue"></i>Has overdue task</span>
+        </div>
+      </div>
+      <div class="card" id="cal-details"></div>
+    </section>
+
+    <!-- Progress -->
+    <section class="view" id="view-progress" hidden>
+      <div class="grid-2">
+        <div class="card" id="progress-overall"></div>
+        <div class="card" id="progress-prod"></div>
+      </div>
+      <div class="card"><div class="card-head"><h3>This week</h3></div><div id="progress-week"></div></div>
+      <div class="card"><div class="card-head"><h3>Subject-wise completion</h3></div><div id="progress-subjects"></div></div>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings" hidden>
+      <div class="card settings">
+        <h3>Profile</h3>
+        <label class="field"><span>Your name (shown on the dashboard)</span><input type="text" id="setting-name" maxlength="30" placeholder="Student"></label>
+      </div>
+      <div class="card settings">
+        <h3>Appearance</h3>
+        <div class="row"><p>Switch between the light and dark theme.</p><button class="btn ghost" data-action="toggle-theme" id="settings-theme"></button></div>
+      </div>
+      <div class="card settings">
+        <h3>Your data</h3>
+        <p class="muted">Everything is stored in this browser using LocalStorage. Nothing is sent anywhere.</p>
+        <div class="row"><p>Download all tasks as a spreadsheet-friendly CSV file.</p><button class="btn ghost" data-action="export-csv"><i data-icon="download" data-size="16"></i><span>Export CSV</span></button></div>
+        <div class="row"><p>Add the sample subjects and tasks again.</p><button class="btn ghost" data-action="load-sample">Load sample data</button></div>
+        <div class="row"><p>Remove only the sample items. Anything you created stays.</p><button class="btn ghost" data-action="clear-sample" id="btn-clear-sample">Clear sample data</button></div>
+        <div class="row"><p>Delete every subject and task. Sample data will not come back.</p><button class="btn danger" data-action="clear-all">Clear all data</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Task dialog -->
+<dialog id="task-dialog" aria-labelledby="task-dialog-title">
+  <form id="task-form" novalidate>
+    <div class="dlg-head"><h3 id="task-dialog-title">Add task</h3><button type="button" class="icon-btn" data-close aria-label="Close"><i data-icon="x"></i></button></div>
+    <div class="dlg-body">
+      <input type="hidden" id="task-id">
+      <label class="field"><span>Title</span><input type="text" id="task-title" maxlength="100" required placeholder="e.g. Finish chapter 4 exercises"></label>
+      <div class="two">
+        <label class="field"><span>Subject</span><select id="task-subject" required></select></label>
+        <label class="field"><span>Priority</span><select id="task-priority"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+      </div>
+      <div class="two">
+        <label class="field"><span>Due date</span><input type="date" id="task-date" required></label>
+        <label class="field"><span>Due time (optional)</span><input type="time" id="task-time"></label>
+      </div>
+      <label class="field"><span>Status</span><select id="task-status"><option>Pending</option><option>Completed</option></select></label>
+      <label class="field"><span>Description (optional)</span><textarea id="task-desc" rows="3" maxlength="300"></textarea></label>
+      <p class="form-error" id="task-error" role="alert" hidden></p>
+    </div>
+    <div class="dlg-foot"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary" id="task-save">Save task</button></div>
+  </form>
+</dialog>
+
+<!-- Subject dialog -->
+<dialog id="subject-dialog" aria-labelledby="subject-dialog-title">
+  <form id="subject-form" novalidate>
+    <div class="dlg-head"><h3 id="subject-dialog-title">Add subject</h3><button type="button" class="icon-btn" data-close aria-label="Close"><i data-icon="x"></i></button></div>
+    <div class="dlg-body">
+      <input type="hidden" id="subject-id">
+      <div class="two">
+        <label class="field"><span>Subject name</span><input type="text" id="subject-name" maxlength="40" required placeholder="e.g. Operating Systems"></label>
+        <label class="field"><span>Code (optional)</span><input type="text" id="subject-code" maxlength="12" placeholder="CS301"></label>
+      </div>
+      <label class="field"><span>Description (optional)</span><textarea id="subject-desc" rows="2" maxlength="200"></textarea></label>
+      <div class="field"><span>Colour</span>
+        <div class="swatches" id="subject-swatches"></div>
+        <label class="custom-color">Custom <input type="color" id="subject-color" value="#5B8DEF"></label>
+      </div>
+      <div class="field"><span>Icon</span><div class="icon-picker" id="subject-icons"></div></div>
+      <p class="form-error" id="subject-error" role="alert" hidden></p>
+    </div>
+    <div class="dlg-foot"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Save subject</button></div>
+  </form>
+</dialog>
+
+<!-- Confirm dialog -->
+<dialog id="confirm-dialog" class="small" aria-labelledby="confirm-title">
+  <div class="dlg-head"><h3 id="confirm-title">Are you sure?</h3></div>
+  <div class="dlg-body"><p id="confirm-message"></p></div>
+  <div class="dlg-foot"><button type="button" class="btn ghost" id="confirm-cancel">Cancel</button><button type="button" class="btn danger" id="confirm-ok">Delete</button></div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/subjects.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

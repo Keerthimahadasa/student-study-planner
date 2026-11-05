@@ -1,0 +1,32 @@
+/* responsive.css - tablet and mobile adjustments. */
+@media (max-width: 1100px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; width: min(280px, 82vw); transform: translateX(-100%); transition: transform .22s ease; }
+  .sidebar-open .sidebar { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, .3); }
+  .sidebar-open .scrim { display: block; position: fixed; inset: 0; z-index: 30; background: rgba(15, 22, 36, .45); }
+  .icon-btn.menu-btn { display: grid; }
+  .main { padding: 16px 16px 40px; }
+}
+@media (max-width: 600px) {
+  h2 { font-size: 1.4rem; }
+  .topbar .btn span { display: none; }
+  .topbar .btn { padding: 9px 11px; }
+  .stats { gap: 10px; } .stat { padding: 14px; gap: 10px; } .stat strong { font-size: 1.4rem; }
+  .card { padding: 16px; }
+  .two { grid-template-columns: 1fr; }
+  .mini-stats { grid-template-columns: repeat(2, 1fr); }
+  .task { grid-template-columns: auto minmax(0, 1fr); }
+  .task-actions { grid-column: 2; margin-top: -4px; }
+  .filters .field { flex: 1 1 100%; }
+  .filters .btn { width: 100%; }
+  .cal-grid { gap: 3px; }
+  .cal-cell { min-height: 54px; padding: 5px; }
+  .cal-dots .dot { width: 7px; height: 7px; }
+  .week { gap: 6px; } .week-count { display: none; }
+  .settings .row { flex-direction: column; align-items: flex-start; }
+  .toasts { left: 12px; right: 12px; bottom: 12px; }
+}
